@@ -878,11 +878,6 @@ function meetText(o, j) {
   return L.join('\n');
 }
 // LINE：手機直接開 LINE 選聊天室；電腦開 LINE 分享頁
-// 先自動複製（LINE 沒帶入文字時可直接貼上），再開 LINE 分享畫面
-function shareLine(txt, btn) {
-  copyText(txt, btn);
-  window.open('https://line.me/R/share?text=' + encodeURIComponent(txt), '_blank', 'noopener');
-}
 // 圖片：一律用淺色畫，貼到 LINE 清楚好讀
 async function kidImage(x) {
   try { await document.fonts?.ready; } catch (e) {}
@@ -946,7 +941,7 @@ function kidCard(x, i, showDq) {
   const [name, shep, code, yr, std, s, sm, h, t25, t26] = x.k, d = dqOf(x.dq);
   return `<div class="kd" style="--z:${STD_COL(std)}">
     <div class="kd-top"><span class="kd-n">${name}</span><span class="kd-y">${gyText(x.k)}</span>
-      <span class="kd-btns"><button class="kd-cp" data-ki="${i}" title="複製這位得少的資料">📋</button><button class="kd-cp" data-img="${i}" title="做成圖片（可存檔、轉傳）">📷</button><button class="kd-cp kd-ln" data-line="${i}" title="先複製文字，再打開 LINE 分享；如果 LINE 裡沒有帶入文字，直接貼上即可">複製→LINE</button></span></div>
+      <span class="kd-btns"><button class="kd-cp" data-ki="${i}" title="複製這位得少的資料，可直接貼到 LINE">📋 複製</button><button class="kd-cp" data-img="${i}" title="做成圖片（可存檔、轉傳）">📷</button></span></div>
     <div class="kd-s">牧養者 <b>${shep || '—'}</b></div>
     <div class="kd-who">${showDq ? `<b>${x.dq} 大區</b>・` : ''}負責弟兄 <b>${d?.lead || '—'}</b>・全時間 <b>${d?.ft || '—'}</b></div>
     <div class="kd-who">${bapText(x.k[13]).slice(1)}${code ? '・' + code : ''}</div>
@@ -989,7 +984,6 @@ function openKids(o) {
       : o.dqs.length > 1 ? `<div class="kd-sec">${g.n} 大區<small>${g.list.length} 位${d?.lead ? '・負責弟兄 ' + d.lead : ''}</small></div>` : '<div style="height:12px"></div>';
     return `${head}<div class="kd-grid">${(g.g ? g.list.slice().sort(byDq) : sorted(g.list)).map(x => { kidsShown.push(x); return kidCard(x, kidsShown.length - 1, !!g.g); }).join('')}</div>`; }).join('');
   document.querySelectorAll('#kidsBody [data-ki]').forEach(b => b.onclick = e => { const btn = e.currentTarget; copyText(kidText(kidsShown[+btn.dataset.ki]), btn); });
-  document.querySelectorAll('#kidsBody [data-line]').forEach(b => b.onclick = e => shareLine(kidText(kidsShown[+b.dataset.line]), e.currentTarget));
   document.querySelectorAll('#kidsBody [data-img]').forEach(b => b.onclick = () => showShot(kidsShown[+b.dataset.img]));
   document.getElementById('kidsCopy').onclick = e => copyText(kidsListText(o), e.currentTarget);
   document.querySelectorAll('.kd-cpm [data-m]').forEach(b => b.onclick = e => copyText(meetText(o, +b.dataset.m), e.currentTarget));

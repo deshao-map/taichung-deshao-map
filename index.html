@@ -438,10 +438,10 @@ path.leaflet-interactive.nokids { fill: url(#nokids) !important; fill-opacity: 1
 .tip-go:hover{filter:brightness(1.08)}
 .tip-go:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 /* 小卡上的兩個大選項 */
-.ac-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,158px),1fr));gap:8px;margin-top:10px}
-.ac-opt{font:inherit;text-align:left;border:1.5px solid var(--line);border-radius:10px;background:var(--panel);color:var(--fg);padding:8px 10px;cursor:pointer;min-width:0}
-.ac-opt b{display:block;font-size:.95rem;white-space:nowrap}
-.ac-opt span{display:block;font-size:.7rem;color:var(--muted);margin-top:1px;white-space:nowrap}
+.ac-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.ac-opt{font:inherit;text-align:left;border:1.5px solid var(--line);border-radius:10px;background:var(--panel);color:var(--fg);padding:7px 8px;cursor:pointer;min-width:0}
+.ac-opt b{display:block;font-size:.86rem;white-space:nowrap}
+.ac-opt span{display:block;font-size:.66rem;color:var(--muted);margin-top:1px;white-space:nowrap}
 .ac-opt.get{border-color:var(--c-ent)} .ac-opt.get b{color:var(--c-ent)}
 .ac-opt.now{border-color:var(--accent)} .ac-opt.now b{color:var(--accent)}
 .ac-opt:hover{background:var(--chip)}
@@ -449,7 +449,7 @@ path.leaflet-interactive.nokids { fill: url(#nokids) !important; fill-opacity: 1
 .ac-copy,.h-copy{font:inherit;font-size:.82rem;font-weight:700;display:block;width:100%;margin-top:8px;padding:7px 10px;border:1px dashed var(--line);border-radius:10px;background:var(--chip);color:var(--fg);cursor:pointer}
 .ac-copy:hover,.h-copy:hover{border-color:var(--accent);color:var(--accent)}
 /* 得少開拓、得少牧養各自一塊：分析按鈕＋只複製這一項的按鈕 */
-.ac-box{display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:12px}
+.ac-box{display:flex;flex-direction:column;gap:6px;padding:5px;border-radius:12px;min-width:0}
 .ac-box.get{background:color-mix(in srgb,var(--c-ent) 10%,var(--panel))}
 .ac-box.now{background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
 .ac-box .ac-copy{margin-top:0;font-size:.76rem;padding:6px 6px;background:var(--panel);white-space:nowrap}
@@ -683,9 +683,9 @@ function showCard(o) {
     <div class="ac-n"><b>${o.count}</b> 位得少・申請填表累計 <b>${o.apps}</b> 份</div>${chips}${o.dqs ? ratioBox(o.dqs) : ''}
     <div class="ac-opts">
       ${DATA.hist ? `<div class="ac-box get"><button class="ac-opt get" data-hist="${o.key}"><b>得少開拓分析 ›</b><span>申請 → 進入專案</span></button>
-        <button class="ac-copy" data-copy="spread">📋 只複製得少開拓重點</button></div>` : ''}
+        <button class="ac-copy" data-copy="spread">📋 複製開拓重點</button></div>` : ''}
       ${DATA.attMeta ? `<div class="ac-box now"><button class="ac-opt now" data-now><b>得少牧養分析 ›</b><span>主日・小排・家聚會</span></button>
-        <button class="ac-copy" data-copy="perfect">📋 只複製得少牧養重點</button></div>` : ''}
+        <button class="ac-copy" data-copy="perfect">📋 複製牧養重點</button></div>` : ''}
     </div>
     ${kidsOf(o).length ? `<button class="ac-kids" data-kids>👥 得少名單與牧養者（${kidsOf(o).length} 位）›</button>` : ''}`;
   areaCard.hidden = false;

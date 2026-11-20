@@ -56,6 +56,13 @@ h1 { font-family: var(--font-display); font-weight: 900; font-size: 1.6rem; marg
 /* 出席檢視時地圖上只留綠／黃／紅三色：不再替地圖背景與外框換色，檢視名稱看左上角標籤 */
 .vframe { display: none; }
 .zk { display: inline-block; margin-right: 8px; white-space: nowrap; }
+.zk.none::before { background: repeating-linear-gradient(45deg, #7b8a84 0 2px, #d5dbd8 2px 5px); }
+/* 0 位得少的大區：灰色斜線，避免遠看像「安全」的綠 */
+path.leaflet-interactive.nokids { fill: url(#nokids) !important; fill-opacity: 1 !important; }
+/* 深色模式：小人、小點加白色外框，才看得清楚 */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .kid { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff); } :root:not([data-theme="light"]) .kdot { border-color: #fff; box-shadow: 0 0 0 1.5px rgba(255,255,255,.6); } }
+:root[data-theme="dark"] .kid { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff); }
+:root[data-theme="dark"] .kdot { border-color: #fff; box-shadow: 0 0 0 1.5px rgba(255,255,255,.6); }
 .zk::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--z); border: 1px solid #fff; margin-right: 4px; vertical-align: -1px; }
 /* 危急（紅）區塊持續閃爍；游標指到時停下來方便看清楚 */
 /* 危急區塊：只在剛打開地圖時閃 10 下就停 */
@@ -228,6 +235,11 @@ h1 { font-family: var(--font-display); font-weight: 900; font-size: 1.6rem; marg
 .rc tbody th small { font-weight: 400; color: var(--muted); margin-left: 4px; font-size: .64rem; }
 .rc td { text-align: center; font-weight: 700; font-size: .8rem; color: var(--fg); font-variant-numeric: tabular-nums; }
 .rc tbody tr + tr > * { border-top: 1px solid var(--line); }
+.rc td small, .rb-r small { display: block; font-size: .6rem; font-weight: 400; color: var(--muted); line-height: 1.2; }
+.rv.sm, .rv.na { color: var(--muted) !important; }
+.rb-r .rv { font-weight: 900; font-size: 1rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+.rb.big .rb-r .rv { font-size: 1.2rem; }
+.rb-note { font-size: .62rem; color: var(--muted); margin-top: 6px; line-height: 1.4; }
 .rc tr.tot > * { background: var(--chip); color: var(--accent); font-weight: 900; font-size: .9rem; }
 .rc tr.tot th { font-size: .78rem; }
 .rb-r span { display: flex; flex-direction: column; line-height: 1.25; color: var(--muted); font-size: .66rem; }
@@ -252,6 +264,22 @@ h1 { font-family: var(--font-display); font-weight: 900; font-size: 1.6rem; marg
 .kd-camp .cp.w { color: #9a6a00; border-color: #e0a526; }
 .kd-cp { font: inherit; font-size: .8rem; border: 1px solid var(--line); background: var(--chip); border-radius: 8px; padding: 1px 6px; cursor: pointer; white-space: nowrap; }
 .kd-cp:hover { border-color: var(--accent); }
+.upd { margin-top: 6px; display: inline-block; font-size: .78rem; font-weight: 700; color: var(--accent); background: var(--chip); border-radius: 999px; padding: 2px 10px; }
+.srch { position: relative; }
+.srch input { font: inherit; font-size: .88rem; width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--fg); }
+.srch input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.qr { display: grid; gap: 4px; margin-top: 4px; }
+.qr:empty { display: none; }
+.qr button { font: inherit; font-size: .84rem; text-align: left; border: 1px solid var(--line); border-radius: 8px; background: var(--chip); color: var(--fg); padding: 6px 10px; cursor: pointer; }
+.qr button:hover { border-color: var(--accent); }
+.qr small { color: var(--muted); margin-left: 6px; }
+.kd.flash { outline: 3px solid var(--accent); outline-offset: 2px; }
+.kd-std { margin-top: 6px; }
+.kd-std small { display: block; font-size: .68rem; color: var(--muted); margin-top: 2px; }
+.kd-warn { font-size: .72rem; font-weight: 700; color: #d1495b; margin-top: 2px; }
+.kd-row i { position: relative; }
+.kd-row i::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 calc(100% / 4.3 - 1px), var(--panel) calc(100% / 4.3 - 1px) calc(100% / 4.3)); }
 .kd-btns { margin-left: auto; display: flex; gap: 4px; }
 .kd-y { margin-left: 0; }
 .kd-ln { background: #06c755 !important; color: #fff; border-color: #06c755 !important; font-weight: 800; }
@@ -434,7 +462,9 @@ h1 { font-family: var(--font-display); font-weight: 900; font-size: 1.6rem; marg
       <div class="theme" id="theme" role="group" aria-label="主題"><button data-t="light">☀️ 淺色</button><button data-t="dark">🌙 深色</button><button data-t="auto">跟系統</button></div>
       <h1>台中得少分布圖</h1>
       <div class="sub">台中專案內得榮少年・各照顧區與大區人數<br>資料：<span id="rosterName"></span></div>
+      <div class="upd" id="upd"></div>
     </div>
+    <div class="srch"><input id="q" type="search" placeholder="🔍 搜尋得少姓名、牧養者或大區（例：18、楊錦豪）" autocomplete="off" aria-label="搜尋得少姓名、牧養者或大區"><div class="qr" id="qr"></div></div>
     <div class="total"><b id="total">0</b><span>位得少・<span id="zoneCount"></span> 個照顧區</span></div>
     <div class="total-apps">2023 年起申請填表累計 <b id="appsTotal">0</b> 份<button class="hist-link" id="histOpen" hidden>觀看歷年比例 ›</button></div>
     <div id="cityRatio"></div>
@@ -498,7 +528,7 @@ h1 { font-family: var(--font-display); font-weight: 900; font-size: 1.6rem; marg
       <div class="h-est" id="hEst"></div>
     </div>
     <div class="h-card h-chart">
-      <div class="h-legend"><span><i style="background:var(--c-app)"></i>每季申請份數</span><span><i style="background:var(--c-ent)"></i>該半年梯次進入專案人數（年中、年底各一次）</span></div>
+      <div class="h-legend"><span><i style="background:var(--c-app)"></i>每季申請份數（Q1–Q4）</span><span><i style="background:var(--c-ent)"></i>該半年梯次進入專案人數（年中、年底各一次）</span><span>※ 進入人數可能多於申請份數：部分得少不是透過報名表進來</span></div>
       <div id="hChart"></div>
     </div>
     <div class="h-sec" id="hKidsTitle"></div>
@@ -606,19 +636,26 @@ function baseSum(dqs) {
   return any ? s : null;
 }
 const pct = (a, b) => b ? (a / b * 100).toFixed(1) + '%' : '—';
+// 比例一律附「人數／基數」；基數 0 顯示「無基數」；基數少於 5 人加＊（樣本小，僅供參考）
+const SMALL_N = 5;
+function ratioCell(num, den, dec) {
+  if (!den) return `<span class="rv na">—</span><small>無基數</small>`;
+  const small = den < SMALL_N;
+  return `<span class="rv${small ? ' sm' : ''}">${(num / den * 100).toFixed(1)}%${small ? '＊' : ''}</span><small>${dec ? num.toFixed(1) : num}／${den}</small>`;
+}
+const RATIO_NOTE = `<div class="rb-note">小字＝人數／基數。＊基數少於 ${SMALL_N} 人，比例容易失真，僅供參考。</div>`;
 function ratioBox(dqs, big) {
   const s = baseSum(dqs); if (!s) return '';
   return `<div class="rb${big ? ' big' : ''}" title="基數來源：全台得少統計（六都）；得少人數與得少主日平均（2026 年 1–10 月，每主日平均人數）用點名系統最新資料">
     <div class="rb-n">主日基數 <b>${s.sun}</b>・青少年基數 <b>${s.youth}</b>・得少 <b>${s.kids}</b> 位・得少主日平均 <b>${s.kidSun.toFixed(1)}</b> 人</div>
-    ${dqs.length > 1 ? ratioCompare(dqs, dqs.length > 6, s) : `<div class="rb-r"><span><em>${pct(s.kids, s.sun)}</em>得少佔主日基數</span><span><em>${pct(s.kidSun, s.youth)}</em>得少佔青少年基數</span></div>`}</div>`;
+    ${dqs.length > 1 ? ratioCompare(dqs, dqs.length > 6, s) : `<div class="rb-r"><span>${ratioCell(s.kids, s.sun)}得少佔主日基數</span><span>${ratioCell(s.kidSun, s.youth, true)}得少佔青少年基數</span></div>`}${RATIO_NOTE}</div>`;
 }
 // 照顧區：列出各大區的比例做比較（色條長度＝比例，各欄以最大值為滿格）
 function ratioCompare(dqs, care, tot) {
   const rows = care ? DATA.care.map(c => ({ n: c.name, b: baseSum(c.dqs), care: true })).filter(r => r.b)
     : dqs.map(n => ({ n, b: DATA.bases[n] })).filter(r => r.b);
   const r1 = b => b.sun ? b.kids / b.sun : null, r2 = b => b.youth ? b.kidSun / b.youth : null;
-  const f = v => v == null ? '—' : (v * 100).toFixed(1) + '%';
-  const row = (name, b, cls) => `<tr${cls ? ` class="${cls}"` : ''}><th>${name}<small>${b.kids} 位</small></th><td>${f(r1(b))}</td><td>${f(r2(b))}</td></tr>`;
+  const row = (name, b, cls) => `<tr${cls ? ` class="${cls}"` : ''}><th>${name}<small>${b.kids} 位</small></th><td>${ratioCell(b.kids, b.sun)}</td><td>${ratioCell(b.kidSun, b.youth, true)}</td></tr>`;
   return `<table class="rc"><colgroup><col><col><col></colgroup><thead><tr><th></th><th>得少佔<br>主日基數</th><th>得少佔<br>青少年基數</th></tr></thead><tbody>` +
     row(care ? '全台中' : '本區合計', tot, 'tot') +
     rows.sort((a, b) => (r1(b.b) || 0) - (r1(a.b) || 0)).map(r => row(r.care ? r.n : r.n + ' 大區', r.b)).join('') + `</tbody></table>`;
@@ -650,7 +687,7 @@ function showCard(o) {
     ${kidsOf(o).length ? `<button class="ac-kids" data-kids>👥 得少名單與牧養者（${kidsOf(o).length} 位）›</button>` : ''}`;
   areaCard.hidden = false;
   document.querySelector('.app').classList.add('carding');
-  areaCard.querySelector('.ac-x').onclick = hideCard;
+  areaCard.querySelector('.ac-x').onclick = () => hideCard(true);
   const go = areaCard.querySelector('[data-hist]'); if (go) go.onclick = () => window.openHist?.(go.dataset.hist);
   const nw = areaCard.querySelector('[data-now]'); if (nw) nw.onclick = () => openNow(o);
   const kb = areaCard.querySelector('[data-kids]'); if (kb) kb.onclick = () => openKids(o);
@@ -715,6 +752,12 @@ function spreadText(o) {
   return L.join('\n');
 }
 // 得少牧養：最需要加強的聚會＋具體做法放最上面，接著三項數字、其他建議
+// 建議帶入具體人名：某項聚會、某一分級的得少（附牧養者），最多列 8 位
+function namesOf(o, j, cat, max = 8) {
+  const list = kidsOf(o).filter(x => cat8(x.k[12] ? x.k[12][j] : null).k === cat);
+  const multi = o.dqs && o.dqs.length > 1;
+  return list.slice(0, max).map(x => `${multi ? x.dq + '大區 ' : ''}${x.k[0]}（牧養者 ${x.k[1] || '—'}）`).join('、') + (list.length > max ? ` 等 ${list.length} 位` : '');
+}
 function perfectText(o) {
   if (!DATA.attMeta) return '';
   const w = attWeeks(), { rows, worst } = nowRows(o);
@@ -724,7 +767,9 @@ function perfectText(o) {
   else if (worst.st === '安全') L.push('⭐ 三項聚會都穩定 👍', '→ 繼續保持，鼓勵得少帶同伴來');
   else {
     L.push(`⭐ 最優先：${worst.m}（${DOT[worst.st]}${worst.st}，穩定只有 ${worst.c.穩定}／${worst.known} 位）`, ...ADVICE[worst.m][worst.st].map(t => `→ ${t}`));
-    if (worst.c.建立中) L.push(`→ 先關心「建立中」的 ${worst.c.建立中} 位，他們最快能變穩定`);
+    const wi = MEET.indexOf(worst.m);
+    if (worst.c.建立中) L.push(`→ 先關心「建立中」的 ${worst.c.建立中} 位，他們最快能變穩定：${namesOf(o, wi, '建立中')}`);
+    if (worst.c.需加強) L.push(`→ 「需加強」的 ${worst.c.需加強} 位：${namesOf(o, wi, '需加強')}`);
     // 照顧區／全台中：點出這一項最危急的大區
     if (o.dqs && o.dqs.length > 1) {
       const i = MEET.indexOf(worst.m);
@@ -763,7 +808,9 @@ function openNow(o) {
   document.getElementById('nowGrid').innerHTML = !o.count ? '' : rows.map(x => {
     const z = x.st ? ZONE[x.st] : '#9aa5a0', tot = o.count || 1;
     const tips = x.st ? [...ADVICE[x.m][x.st]] : ['還沒有點名紀錄，請先確認點名。'];
-    if (x.st && x.st !== '安全' && x.c.建立中) tips.push(`優先關心「建立中」的 ${x.c.建立中} 位，他們最快能變穩定。`);
+    const j = MEET.indexOf(x.m);
+    if (x.st && x.st !== '安全' && x.c.建立中) tips.push(`優先關心「建立中」的 ${x.c.建立中} 位，他們最快能變穩定：${namesOf(o, j, '建立中')}。`);
+    if (x.st && x.st !== '安全' && x.c.需加強) tips.push(`「需加強」的 ${x.c.需加強} 位：${namesOf(o, j, '需加強')}。`);
     if (x.c.未點名) tips.push(`有 ${x.c.未點名} 位沒有點名紀錄，請確認是否漏點。`);
     return `<div class="h-card nw-c" style="--z:${z}">
       <div class="nw-t"><h3>${x.m}</h3><span class="nw-pill">${x.st || '無資料'}</span></div>
@@ -793,10 +840,10 @@ function kidText(x) {
   const [name, shep, code, yr, std, s, sm, h, t25, t26] = x.k;
   const d = dqOf(x.dq);
   return [`【${name}】${x.dq} 大區${x.k[14] ? '・' + x.k[14] : ''}${yr ? '・第' + yr + '年' : ''}${code ? '（' + code + '）' : ''}`, `牧養者：${shep || '—'}`,
-    `負責弟兄：${d?.lead || '—'}・全時間：${d?.ft || '—'}`, `最低標準：${std || '—'}`,
+    `負責弟兄：${d?.lead || '—'}・全時間：${d?.ft || '—'}`, `最低標準（8–10 月每月）：${std || '—'}`,
     x.k[13] ? `受浸：${x.k[13].slice(0, 4)}/${+x.k[13].slice(4, 6)}/${+x.k[13].slice(6, 8)}` : '受浸：尚未受浸',
     `近 8 週：${['主日', '小排', '家聚會'].map((l, j) => { const a = x.k[12] ? x.k[12][j] : null; return `${l} ${cat8(a).k}${a != null ? '（' + a + ' 次）' : ''}`; }).join('・')}`,
-    `每月平均（${avgSpan(x.k[11])}）：主日 ${s == null ? '—' : s.toFixed(1)} 次・小排 ${sm == null ? '—' : sm.toFixed(1)} 次・家聚會 ${h == null ? '—' : h.toFixed(1)} 次`, ...(campText(x.k[10]) ? [`🏕 特會：${campText(x.k[10])}`] : [])].join('\n');
+    `每月平均（${avgSpan(x.k[11])}）：主日 ${s == null ? '—' : s.toFixed(1)} 次・小排 ${sm == null ? '—' : sm.toFixed(1)} 次・家聚會 ${h == null ? '—' : h.toFixed(1)} 次`, `🏕 特會：${campText(x.k[10])}`].join('\n');
 }
 // 一鍵複製：整區名單（未達標排最前，標出差哪一項）
 function kidsListText(o) {
@@ -831,7 +878,11 @@ function meetText(o, j) {
   return L.join('\n');
 }
 // LINE：手機直接開 LINE 選聊天室；電腦開 LINE 分享頁
-const shareLine = txt => window.open('https://line.me/R/share?text=' + encodeURIComponent(txt), '_blank', 'noopener');
+// 先自動複製（LINE 沒帶入文字時可直接貼上），再開 LINE 分享畫面
+function shareLine(txt, btn) {
+  copyText(txt, btn);
+  window.open('https://line.me/R/share?text=' + encodeURIComponent(txt), '_blank', 'noopener');
+}
 // 圖片：一律用淺色畫，貼到 LINE 清楚好讀
 async function kidImage(x) {
   try { await document.fonts?.ready; } catch (e) {}
@@ -851,7 +902,8 @@ async function kidImage(x) {
   y += 42; parts(y, [['牧養者 ', `18px ${F}`, MU], [shep || '—', `bold 23px ${F}`, AC]]);
   y += 34; parts(y, [['負責弟兄 ', `17px ${F}`, MU], [d?.lead || '—', `bold 19px ${F}`, FG], ['　全時間 ', `17px ${F}`, MU], [d?.ft || '—', `bold 19px ${F}`, FG]]);
   y += 32; T(x.k[13] ? `受浸 ${x.k[13].slice(0, 4)}/${+x.k[13].slice(4, 6)}/${+x.k[13].slice(6, 8)}` : '尚未受浸', 34, y, `17px ${F}`, MU);
-  y += 46; pill(std || '—', 34, y, STD_COL(std), 18);
+  y += 46; const pw = pill('最低標準・' + (std || '—'), 34, y, STD_COL(std), 18);
+  T('（8–10 月每月）', 34 + pw + 10, y, `14px ${F}`, MU);
   y += 30; g.fillStyle = '#d9dfdb'; g.fillRect(34, y, W - 68, 1);
   y += 30; T(`每月平均（${avgSpan(x.k[11])}）`, 34, y, `15px ${F}`, MU); T('近 8 週', W - 34, y, `15px ${F}`, MU, 'right');
   [['主日', s, '#d98a1f'], ['小排', sm, '#2f7fc4'], ['家聚會', h, '#c9506e']].forEach(([l, v, c], j) => {
@@ -861,7 +913,9 @@ async function kidImage(x) {
     T(v == null ? '—' : v.toFixed(1) + ' 次', 470, y, `bold 20px ${F}`, FG, 'right');
     pill(`${ct.k}${a8 != null ? ' ' + a8 + ' 次' : ''}`, W - 34, y, ct.col, 16, 'right');
   });
-  if (camps.length) { y += 50; let x0 = 34 + T('🏕 特會', 34, y, `bold 18px ${F}`, '#9a6a00') + 12; camps.forEach(l => { x0 += pill(l + ' ✓', x0, y, '#e0a526', 15) + 8; }); }
+  { y += 50; let x0 = 34 + T('🏕 特會', 34, y, `bold 18px ${F}`, '#9a6a00') + 12;
+    CAMPS.forEach((l, i) => { const st = (x.k[10] || '----')[i], t = (CAMP_ST[st] || CAMP_ST['-'])[1];
+      x0 += pill(`${l} ${t}`, x0, y, st === '參' ? '#e0a526' : st === '取' ? '#d1495b' : st === '替' ? '#c08a1a' : '#b3bcb8', 14) + 6; }); }
   y += 30; g.fillStyle = '#d9dfdb'; g.fillRect(34, y, W - 68, 1);
   y += 26; T(`台中得少分布圖・${today()}`, 34, y, `14px ${F}`, MU); T('近 8 週：穩定 5 次↑・建立中 3–4・需加強 2↓', W - 34, y, `14px ${F}`, MU, 'right');
   const H = y + 22, out = document.createElement('canvas'); out.width = W * S; out.height = H * S;
@@ -892,12 +946,13 @@ function kidCard(x, i, showDq) {
   const [name, shep, code, yr, std, s, sm, h, t25, t26] = x.k, d = dqOf(x.dq);
   return `<div class="kd" style="--z:${STD_COL(std)}">
     <div class="kd-top"><span class="kd-n">${name}</span><span class="kd-y">${gyText(x.k)}</span>
-      <span class="kd-btns"><button class="kd-cp" data-ki="${i}" title="複製這位得少的資料">📋</button><button class="kd-cp" data-img="${i}" title="做成圖片（可存檔、轉傳）">📷</button><button class="kd-cp kd-ln" data-line="${i}" title="用 LINE 傳送文字">LINE</button></span></div>
+      <span class="kd-btns"><button class="kd-cp" data-ki="${i}" title="複製這位得少的資料">📋</button><button class="kd-cp" data-img="${i}" title="做成圖片（可存檔、轉傳）">📷</button><button class="kd-cp kd-ln" data-line="${i}" title="先複製文字，再打開 LINE 分享；如果 LINE 裡沒有帶入文字，直接貼上即可">複製→LINE</button></span></div>
     <div class="kd-s">牧養者 <b>${shep || '—'}</b></div>
     <div class="kd-who">${showDq ? `<b>${x.dq} 大區</b>・` : ''}負責弟兄 <b>${d?.lead || '—'}</b>・全時間 <b>${d?.ft || '—'}</b></div>
     <div class="kd-who">${bapText(x.k[13]).slice(1)}${code ? '・' + code : ''}</div>
-    <span class="kd-st">${std || '—'}</span>
-    <div class="kd-att"><div class="kd-cap"><span>每月平均（${avgSpan(x.k[11])}）</span><span>近 8 週</span></div>
+    <div class="kd-std"><span class="kd-st">最低標準・${std || '—'}</span><small>${std === '符合' ? '僅指 8–10 月每月的最低標準，不代表近況穩定' : '看 8–10 月每月是否達到該年最低標準'}</small>
+      ${std === '符合' && x.k[12] && x.k[12].every(a => a <= 2) ? `<div class="kd-warn">⚠ 但近 8 週三項聚會都是「需加強」，請留意</div>` : ''}</div>
+    <div class="kd-att"><div class="kd-cap"><span>每月平均（${avgSpan(x.k[11])}）・刻度＝每月 1 次</span><span>近 8 週出席</span></div>
       ${[['主日', s, '#d98a1f'], ['小排', sm, '#2f7fc4'], ['家聚會', h, '#c9506e']].map(([l, v, c], j) => { const a8 = x.k[12] ? x.k[12][j] : null, ct = cat8(a8);
         return `<div class="kd-row"><span>${l}</span><i><b style="width:${v == null ? 0 : Math.min(100, v / PER_MONTH * 100)}%;background:${c}"></b></i><em>${v == null ? '—' : v.toFixed(1) + ' 次'}</em><u style="--c:${ct.col}" title="最近 8 週 ${a8 ?? '—'} 次">${ct.k}${a8 != null ? ' ' + a8 : ''}</u></div>`; }).join('')}</div>
     ${campRow(x.k[10])}</div>`;
@@ -909,10 +964,12 @@ const cat8 = n => n == null ? { k: '未點名', col: '#9aa5a0' } : ATT_CATS.find
 const bapText = d => d ? `・受浸 ${d.slice(0, 4)}/${+d.slice(4, 6)}/${+d.slice(6, 8)}` : '・未受浸';
 const avgSpan = st => (st || 1) === 1 ? '2026 年 1–10 月' : `2026 年 ${st}–10 月`;
 const CAMPS = ['25 寒', '25 暑', '26 寒', '26 暑'];
-// 特會只列出有參加的；一次都沒參加就整列不顯示
+// 特會四場都列出：參加 ✓、取消、替補、未參加（分得清「沒參加」和「沒資料」）
 const campOn = c => CAMPS.filter((l, i) => (c || '----')[i] === '參');
-const campRow = c => campOn(c).length ? `<div class="kd-camp"><span class="kd-cl">🏕 特會</span>${campOn(c).map(l => `<span class="cp on">${l} ✓</span>`).join('')}</div>` : '';
-const campText = c => campOn(c).map(l => `20${l.replace(' ', '')}✓`).join('、');
+const CAMP_ST = { 參: ['on', '✓'], 取: ['x', '取消'], 替: ['w', '替補'], '-': ['', '未參加'] };
+const campRow = c => `<div class="kd-camp"><span class="kd-cl">🏕 特會</span>${CAMPS.map((l, i) => { const [cls, t] = CAMP_ST[(c || '----')[i]] || CAMP_ST['-'];
+  return `<span class="cp ${cls}">${l} ${t}</span>`; }).join('')}</div>`;
+const campText = c => CAMPS.map((l, i) => `20${l.replace(' ', '')}${(CAMP_ST[(c || '----')[i]] || CAMP_ST['-'])[1]}`).join('、');
 function openKids(o) {
   const all = kidsOf(o), cnt = t => all.filter(x => t(x.k[4])).length;
   document.getElementById('kidsTitle').textContent = o.byGrade ? `${o.name}・得少名單` : `${o.name}・得少名單與牧養者`;
@@ -932,7 +989,7 @@ function openKids(o) {
       : o.dqs.length > 1 ? `<div class="kd-sec">${g.n} 大區<small>${g.list.length} 位${d?.lead ? '・負責弟兄 ' + d.lead : ''}</small></div>` : '<div style="height:12px"></div>';
     return `${head}<div class="kd-grid">${(g.g ? g.list.slice().sort(byDq) : sorted(g.list)).map(x => { kidsShown.push(x); return kidCard(x, kidsShown.length - 1, !!g.g); }).join('')}</div>`; }).join('');
   document.querySelectorAll('#kidsBody [data-ki]').forEach(b => b.onclick = e => { const btn = e.currentTarget; copyText(kidText(kidsShown[+btn.dataset.ki]), btn); });
-  document.querySelectorAll('#kidsBody [data-line]').forEach(b => b.onclick = () => shareLine(kidText(kidsShown[+b.dataset.line])));
+  document.querySelectorAll('#kidsBody [data-line]').forEach(b => b.onclick = e => shareLine(kidText(kidsShown[+b.dataset.line]), e.currentTarget));
   document.querySelectorAll('#kidsBody [data-img]').forEach(b => b.onclick = () => showShot(kidsShown[+b.dataset.img]));
   document.getElementById('kidsCopy').onclick = e => copyText(kidsListText(o), e.currentTarget);
   document.querySelectorAll('.kd-cpm [data-m]').forEach(b => b.onclick = e => copyText(meetText(o, +b.dataset.m), e.currentTarget));
@@ -946,7 +1003,14 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.
 function closeNow() { document.getElementById('now').hidden = true; document.body.style.overflow = ''; map.invalidateSize(); }
 document.getElementById('nowClose').onclick = closeNow;
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('now').hidden) closeNow(); });
-function hideCard() { areaCard.hidden = true; cardFor = null; if (typeof selectShape === 'function') selectShape(null); document.querySelector('.app').classList.remove('carding'); }
+// 關掉小卡；按 × 或 Esc 時順便縮回上一層（大區 → 它的照顧區；照顧區 → 全台中）
+function hideCard(zoomOut) {
+  const was = typeof selShp !== 'undefined' ? selShp : null;
+  areaCard.hidden = true; cardFor = null; if (typeof selectShape === 'function') selectShape(null); document.querySelector('.app').classList.remove('carding');
+  if (!zoomOut || !was) return;
+  const dq = Object.entries(dqShapes).find(([, s]) => s === was), care = dq && DATA.dq.find(x => x.n === +dq[0])?.care;
+  if (care && careShapes[care]) careShapes[care]._fly(); else map.flyToBounds(allBounds, { padding: [20, 20], duration: .6 });
+}
 // 用點擊的經緯度判斷點在哪一區（游標移入時區塊會被移到最上層，地圖本身的區塊點擊不可靠）
 function inRing(x, y, r) { let k = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
   const [xi, yi] = r[i], [xj, yj] = r[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) k = !k; } return k; }
@@ -979,7 +1043,7 @@ map.on('mouseup click', e => {
   selectShape(shp);
   shp._fly();
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('hist').hidden && document.getElementById('now').hidden && document.getElementById('kidsPg').hidden) hideCard(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('hist').hidden && document.getElementById('now').hidden && document.getElementById('kidsPg').hidden) hideCard(true); });
 function badgeIcon(count, label, big, extra = '', col = null) {
   const cls = 'badge' + (big ? ' big' : '') + (count === 0 ? ' zero' : '');
   // 出席檢視時圓圈用狀態色（綠／黃／紅），沒有點名資料的用白底
@@ -1218,6 +1282,12 @@ function applyFocus() {
   window.__declutter?.();
 }
 const attCol = o => view === 'stage' ? null : zoneColor(o)[0];
+// 斜線圖樣放進地圖的 SVG（第一次畫區塊後才有 SVG）
+function addHatch() {
+  const svg = map.getPanes().overlayPane.querySelector('svg'); if (!svg || svg.querySelector('#nokids')) return;
+  svg.insertAdjacentHTML('afterbegin', `<defs><pattern id="nokids" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#9aa5a0" fill-opacity=".22"/><line x1="0" y1="0" x2="0" y2="7" stroke="#7b8a84" stroke-width="2" stroke-opacity=".75"/></pattern></defs>`);
+}
+map.on('layeradd', addHatch);
 function paintView() {
   const app = document.querySelector('.app'), att = view !== 'stage';
   app.dataset.view = view;
@@ -1230,16 +1300,19 @@ function paintView() {
     shp._op = op; shp._stroke = stroke;
     shp.setStyle({ color: stroke, fillColor: col, fillOpacity: op, weight: 1.5 });
     setBlink(shp, st === '危急');
+    setCls(shp, 'nokids', !d.count);   // 0 位得少：灰色斜線
   });
+  addHatch();
   DATA.care.forEach(c => { const st = att ? zoneStatus(careCounts(c)) : null;
     const col = att ? (st ? ZONE[st] : '#ffffff') : COLORS[c.name];
     careShapes[c.name].setStyle({ color: att ? '#ffffff' : col, fillColor: col, fillOpacity: att ? (st ? .55 : 0) : .28 });
     setBlink(careShapes[c.name], st === '危急'); });
   const chip = document.getElementById('vchip'), card = document.getElementById('vcard');
-  chip.hidden = card.hidden = !att;
-  if (!att) return;
+  chip.hidden = false; card.hidden = !att;
+  const none = `<span class="zk none">無得少</span>`;
+  if (!att) { chip.innerHTML = `<b>學習階段</b><small>顏色＝照顧區（不代表出席好壞）；小人造型＝國小／國中／高中・${none}</small>`; return; }
   const wk = DATA.attMeta.weeks.map(w => w.slice(5).replace('-', '/').replace(/^0/, '')).join('–');
-  chip.innerHTML = `<b>${V().label}出席</b><small>最近 8 週 ${wk}・依穩定比例：<span class="zk" style="--z:${ZONE.安全}">安全 ≥50%</span><span class="zk" style="--z:${ZONE.須注意}">須注意 25–49%</span><span class="zk" style="--z:${ZONE.危急}">危急 &lt;25%</span></small>`;
+  chip.innerHTML = `<b>${V().label}出席</b><small>最近 8 週 ${wk}・依穩定比例：<span class="zk" style="--z:${ZONE.安全}">安全 ≥50%</span><span class="zk" style="--z:${ZONE.須注意}">須注意 25–49%</span><span class="zk" style="--z:${ZONE.危急}">危急 &lt;25%</span>${none}</small>`;
   const o = countsFor(() => true);
   // 一句話先講重點：「每 10 位約幾位穩定」＋狀態；色條上直接寫人數，下面一行圖例說明次數
   const known = o.穩定 + o.建立中 + o.需加強, st = zoneStatus(o), ten = known ? Math.round(o.穩定 / known * 10) : 0;
@@ -1317,6 +1390,25 @@ Object.entries(modeBtns).forEach(([k, b]) => b.addEventListener('click', () => {
 document.getElementById('total').textContent = DATA.total;
 document.getElementById('zoneCount').textContent = DATA.care.length;
 document.getElementById('appsTotal').textContent = DATA.appsTotal;document.getElementById('rosterName').textContent = DATA.rosterName;
+// 頂部統一的更新日期
+{ const md = s => s ? `${+s.slice(5, 7)}/${+s.slice(8, 10)}` : '';
+  document.getElementById('upd').textContent = `資料更新至 ${md(DATA.kidsAsOf)}${DATA.attMeta ? `・點名至 ${md(DATA.attMeta.weeks[1])}` : ''}`; }
+// 搜尋：得少姓名、牧養者、大區號碼 → 大區飛過去；得少打開名單並標出那張卡
+{ const q = document.getElementById('q'), qr = document.getElementById('qr');
+  const allKids = Object.entries(DATA.kids || {}).flatMap(([n, l]) => l.map(k => ({ dq: +n, k })));
+  q.addEventListener('input', () => {
+    const t = q.value.trim().replace(/大區$/, '').trim(); if (!t) { qr.innerHTML = ''; return; }
+    const dqs = /^\d+$/.test(t) ? DATA.dq.filter(d => String(d.n) === t || String(d.n).startsWith(t)).slice(0, 4) : [];
+    const ks = allKids.filter(x => x.k[0].includes(t) || (x.k[1] || '').includes(t)).slice(0, 8);
+    qr.innerHTML = dqs.map(d => `<button data-dq="${d.n}">📍 ${d.n} 大區<small>${d.care || ''} 照顧區・${d.count} 位</small></button>`).join('') +
+      ks.map(x => `<button data-dqk="${x.dq}" data-nm="${x.k[0]}">👤 ${x.k[0]}<small>${x.dq} 大區・${gyText(x.k)}・牧養者 ${x.k[1] || '—'}</small></button>`).join('') ||
+      `<small style="color:var(--muted)">找不到「${t.replace(/[<>&]/g, '')}」</small>`;
+  });
+  qr.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.dq) { const shp = dqShapes[+b.dataset.dq]; closeOpenTip(); showCard(shp._card()); selectShape(shp); shp._fly(); return; }
+    openKids(dqShapes[+b.dataset.dqk]._card());
+    const i = kidsShown.findIndex(x => x.k[0] === b.dataset.nm), el = document.querySelector(`#kidsBody [data-ki="${i}"]`)?.closest('.kd');
+    if (el) { el.classList.add('flash'); setTimeout(() => el.scrollIntoView({ block: 'center' }), 50); setTimeout(() => el.classList.remove('flash'), 3000); } }); }
 const maxCare = Math.max(...DATA.care.map(c => c.count));
 const ledger = document.getElementById('ledger');
 [...DATA.care].sort((a, b) => b.count - a.count).forEach(c => {
@@ -1396,12 +1488,15 @@ document.getElementById('foot').innerHTML =
   const CITY = stats(allDqs, true);
 
   function chart(st) {
-    const W = 720, H0 = 230, top = 26, bot = 62, gw = W / st.hv.length;
-    const max = Math.max(4, ...st.hv.flatMap(h => [...h.apps, h.ent]));
+    const W = 720, H0 = 244, top = 30, bot = 76, gw = W / st.hv.length;
+    // Y 軸上限取「好讀的整數」並留 15% 空間，最高的長條和數字不會頂到邊
+    const raw = Math.max(4, ...st.hv.flatMap(h => [...h.apps, h.ent])) * 1.15;
+    const stepRaw = raw / 4, mag = 10 ** Math.floor(Math.log10(stepRaw)), step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(v => v >= stepRaw);
+    const max = step * 4;
     const y = v => top + (H0 - top) * (1 - v / max), bh = v => (H0 - top) * v / max;
     const bw = Math.min(22, gw * .2);
     let s = `<svg viewBox="0 0 ${W} ${H0 + bot}" role="img" aria-label="${scopeName(scope)}每季申請與每半年進入專案人數">`;
-    for (let i = 1; i <= 2; i++) { const v = Math.round(max * i / 2); s += `<line x1="0" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="0" y="${y(v) - 4}" font-size="11" fill="var(--muted)">${v}</text>`; }
+    for (let i = 1; i <= 4; i++) { const v = step * i; s += `<line x1="0" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="2" y="${y(v) - 3}" font-size="10" fill="var(--muted)">${+v.toFixed(1)}</text>`; }
     s += `<line x1="0" x2="${W}" y1="${H0}" y2="${H0}" stroke="var(--line)"/>`;
     st.hv.forEach((h, i) => {
       const x0 = i * gw, cx = x0 + gw / 2;
@@ -1419,9 +1514,12 @@ document.getElementById('foot').innerHTML =
         s += `<text x="${xs[2] + (bw + 6) / 2}" y="${y(h.ent) - 4}" font-size="12" font-weight="700" text-anchor="middle" fill="var(--c-ent)">${h.ent}</text>`;
       }
       const a = h.apps[0] + h.apps[1];
-      s += `<text x="${cx}" y="${H0 + 17}" font-size="12" font-weight="700" text-anchor="middle" fill="var(--fg)">${h.y} ${h.h === 1 ? '上' : '下'}</text>`;
-      s += `<text x="${cx}" y="${H0 + 33}" font-size="11" text-anchor="middle" fill="var(--muted)">申請 ${a}${h.pending ? '' : ` → ${h.ent} 位`}</text>`;
-      if (!h.pending && h.ent) s += `<text x="${cx}" y="${H0 + 49}" font-size="11" text-anchor="middle" fill="var(--muted)">每 ${fmtR(a / h.ent)} 份→1</text>`;
+      // 每根長條下方標明：第幾季申請（份）／梯次進入（位），季和梯次不會混在一起看
+      h.qs.forEach((q, k) => { s += `<text x="${xs[k] + bw / 2}" y="${H0 + 11}" font-size="9" text-anchor="middle" fill="var(--c-app)">${q.slice(-2)}</text>`; });
+      s += `<text x="${xs[2] + (bw + 6) / 2}" y="${H0 + 11}" font-size="9" font-weight="700" text-anchor="middle" fill="var(--c-ent)">進入</text>`;
+      s += `<text x="${cx}" y="${H0 + 30}" font-size="12" font-weight="700" text-anchor="middle" fill="var(--fg)">${h.y} ${h.h === 1 ? '上' : '下'}</text>`;
+      s += `<text x="${cx}" y="${H0 + 46}" font-size="11" text-anchor="middle" fill="var(--muted)">申請 ${a}${h.pending ? '' : ` → ${h.ent} 位`}</text>`;
+      if (!h.pending && h.ent) s += `<text x="${cx}" y="${H0 + 62}" font-size="11" text-anchor="middle" fill="var(--muted)">每 ${fmtR(a / h.ent)} 份→1</text>`;
     });
     return s + '</svg>';
   }

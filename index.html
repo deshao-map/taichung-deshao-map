@@ -104,7 +104,8 @@ path.leaflet-interactive.nokids { fill: url(#nokids) !important; fill-opacity: 1
 .dqs { display: flex; flex-direction: column; gap: 3px; margin-top: 7px; }
 .dqs button { font: inherit; font-size: .76rem; border: 1px solid var(--line); background: var(--panel); color: var(--fg); text-align: left;
   border-radius: 8px; padding: 4px 8px; cursor: pointer; font-variant-numeric: tabular-nums;
-  display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 2px; align-items: baseline; }
+  display: grid; grid-template-columns: auto 1fr auto; column-gap: 8px; row-gap: 2px; align-items: baseline; }
+.dqs .dk .cls-pill { font-size: .66rem; padding: 0 8px; }
 .dqs .dn { font-weight: 700; white-space: nowrap; }
 .dqs .dc { color: var(--muted); white-space: nowrap; }
 .dqs .dl { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; color: var(--muted); font-size: .72rem; }
@@ -1483,7 +1484,9 @@ const ledger = document.getElementById('ledger');
   const chips = c.dqs.map(n => { const d = DATA.dq.find(x => x.n === n); const k = d ? d.count : 0;
     // 第二行固定兩欄：負責弟兄｜全時間（沒有的話留「—」），每一列對齊、名字不會被拆到下一行
     const who = `<span class="pp">負責弟兄 <b>${d?.lead || '—'}</b></span><span class="pp">全時間 <b>${d?.ft || '—'}</b></span>`;
-    return `<button data-dq="${n}" class="${k ? '' : 'zero'}" aria-label="${n} 大區 ${k} 位"><span class="dn">${n} 大區</span><span class="dc">${k} 位</span><span class="dl">${who}</span></button>`; }).join('');
+    const cl = DATA.bases ? clsOfBase(DATA.bases[n]) : null, bb = DATA.bases && DATA.bases[n];
+    const tag = cl ? `<span class="dk" title="得少佔主日基數 ${bb && bb.sun ? (bb.kids / bb.sun * 100).toFixed(1) + '%' : '—'}">${clsPill(cl)}</span>` : '<span></span>';
+    return `<button data-dq="${n}" class="${k ? '' : 'zero'}" aria-label="${n} 大區 ${k} 位${cl ? '・' + cl.k : ''}"><span class="dn">${n} 大區</span><span class="dc">${k} 位</span>${tag}<span class="dl">${who}</span></button>`; }).join('');
   const fts = ftOf(c.dqs);
   el.innerHTML = `<div class="zone-head"><span class="sw" style="background:${col}"></span>${c.name}照顧區<span class="n">${c.count}</span></div>
     <div class="bar"><i style="width:${(c.count / maxCare * 100).toFixed(1)}%;background:${col}"></i></div>

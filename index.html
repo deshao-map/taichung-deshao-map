@@ -710,7 +710,7 @@ function needOf(o) {
   return { c, main, more, pct };
 }
 const needBox = o => { const n = needOf(o);
-  return `<div class="need" style="--c:${n.c.col}"><div class="need-h">${clsPill(n.c)}<small>得少佔主日基數 ${n.pct}・${n.c.d}</small></div>
+  return `<div class="need" style="--c:${n.c.col}"><div class="need-h">${clsPill(n.c)}<small>得少佔主日基數 ${n.pct}${n.c.d !== n.c.k ? '・' + n.c.d : ''}</small></div>
     <div class="need-m">⭐ 現階段最需要：${n.main}</div>${n.more.map(t => `<div class="need-s">・${t}</div>`).join('')}</div>`; };
 const needText = o => { const n = needOf(o); return [`🏷 分類：${n.c.k}（得少佔主日基數 ${n.pct}）`, `⭐ 現階段最需要：${n.main}`, ...n.more.map(t => `・${t}`)]; };
 const dqObj = n => dqShapes[n]._card();

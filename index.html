@@ -231,7 +231,7 @@ path.leaflet-interactive.nokids { fill: url(#nokids) !important; fill-opacity: 1
 .rb-n b { color: var(--fg); font-variant-numeric: tabular-nums; }
 .rb-r { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-top: 4px; }
 .rc { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 8px; font-size: .74rem; }
-.rc col:first-child { width: 40%; }
+.rc col:first-child { width: 32%; }
 .rc th, .rc td { padding: 4px 4px; text-align: left; font-weight: 400; color: var(--muted); }
 .rc thead th { font-size: .64rem; line-height: 1.25; text-align: center; vertical-align: bottom; padding-bottom: 5px; }
 .rc tbody th { font-weight: 700; color: var(--fg); white-space: nowrap; }
@@ -277,6 +277,20 @@ path.leaflet-interactive.nokids { fill: url(#nokids) !important; fill-opacity: 1
 .qr button:hover { border-color: var(--accent); }
 .qr small { color: var(--muted); margin-left: 6px; }
 .kd.flash { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cls-pill { display: inline-block; font-size: .72rem; font-weight: 800; color: #fff; background: var(--c); border-radius: 999px; padding: 1px 9px; white-space: nowrap; }
+.need { margin-top: 8px; border: 1.5px solid var(--c); border-radius: 10px; padding: 7px 9px; background: color-mix(in srgb, var(--c) 8%, var(--panel)); }
+.need-h { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.need-h small { font-size: .66rem; color: var(--muted); }
+.need-m { font-size: .84rem; font-weight: 800; margin-top: 4px; line-height: 1.45; }
+.need-s { font-size: .74rem; color: var(--muted); margin-top: 2px; line-height: 1.45; }
+.dc-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.dc-row small { font-size: .7rem; color: var(--muted); }
+.dc-row b { margin-left: auto; font-size: .8rem; }
+.dc-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.dc-chips button { font: inherit; font-size: .74rem; border: 1px solid var(--line); border-radius: 999px; background: var(--chip); color: var(--fg); padding: 1px 8px; cursor: pointer; }
+.dc-chips button:hover { border-color: var(--accent); }
+.dc-copy { width: 100% !important; margin: 10px 0 0 !important; }
+.rc td .cls-pill { font-size: .6rem; padding: 0 6px; }
 .kd-std { margin-top: 6px; }
 .kd-std small { display: block; font-size: .68rem; color: var(--muted); margin-top: 2px; }
 .kd-warn { font-size: .72rem; font-weight: 700; color: #d1495b; margin-top: 2px; }
@@ -471,6 +485,7 @@ path.leaflet-interactive.nokids { fill: url(#nokids) !important; fill-opacity: 1
     <div class="total"><b id="total">0</b><span>位得少・<span id="zoneCount"></span> 個照顧區</span></div>
     <div class="total-apps">2023 年起申請填表累計 <b id="appsTotal">0</b> 份<button class="hist-link" id="histOpen" hidden>觀看歷年比例 ›</button></div>
     <div id="cityRatio"></div>
+    <div id="dqCls"></div>
     <div class="hint">游標移到大區上看人數。地圖縮小時顯示照顧區合計，放大後顯示各大區與每位得少的位置點。點左側照顧區或大區可直接飛過去。</div>
     <div id="viewsWrap">
       <div class="sec">檢視</div>
@@ -658,12 +673,63 @@ function ratioCompare(dqs, care, tot) {
   const rows = care ? DATA.care.map(c => ({ n: c.name, b: baseSum(c.dqs), care: true })).filter(r => r.b)
     : dqs.map(n => ({ n, b: DATA.bases[n] })).filter(r => r.b);
   const r1 = b => b.sun ? b.kids / b.sun : null, r2 = b => b.youth ? b.kidSun / b.youth : null;
-  const row = (name, b, cls) => `<tr${cls ? ` class="${cls}"` : ''}><th>${name}<small>${b.kids} 位</small></th><td>${ratioCell(b.kids, b.sun)}</td><td>${ratioCell(b.kidSun, b.youth, true)}</td></tr>`;
-  return `<table class="rc"><colgroup><col><col><col></colgroup><thead><tr><th></th><th>得少佔<br>主日基數</th><th>得少佔<br>青少年基數</th></tr></thead><tbody>` +
+  const row = (name, b, cls) => `<tr${cls ? ` class="${cls}"` : ''}><th>${name}<small>${b.kids} 位</small></th><td>${ratioCell(b.kids, b.sun)}</td><td>${ratioCell(b.kidSun, b.youth, true)}</td><td>${cls === 'tot' ? '' : clsPill(clsOfBase(b))}</td></tr>`;
+  return `<table class="rc"><colgroup><col><col><col><col style="width:26%"></colgroup><thead><tr><th></th><th>得少佔<br>主日基數</th><th>得少佔<br>青少年基數</th><th>分類</th></tr></thead><tbody>` +
     row(care ? '全台中' : '本區合計', tot, 'tot') +
     rows.sort((a, b) => (r1(b.b) || 0) - (r1(a.b) || 0)).map(r => row(r.care ? r.n : r.n + ' 大區', r.b)).join('') + `</tbody></table>`;
 }
 { const el = document.getElementById('cityRatio'); if (el && DATA.bases) el.innerHTML = `<div class="rb-t">全台中（不含金門）</div>` + ratioBox(Object.keys(DATA.bases).map(Number), true); }
+// ── 大區分類（與全台得少分布圖相同）：得少人數 ÷ 主日基數 ──
+const CLS = [
+  { k: '需鼓勵突破', d: '0%（沒有得少）', col: '#8a5cc2' },
+  { k: '需加強推廣', d: '低於 10%', col: '#e0773a' },
+  { k: '需主日成全', d: '10%～20%', col: '#2f7fc4' },
+  { k: '20% 以上', d: '20% 以上', col: '#2e9e5b' },
+  { k: '無基數', d: '主日基數是 0 或空白', col: '#9aa5a0' },
+];
+function clsOfBase(b) { if (!b || !b.sun) return CLS[4]; if (!b.kids) return CLS[0]; const r = b.kids / b.sun; return r < .1 ? CLS[1] : r < .2 ? CLS[2] : CLS[3]; }
+const clsPill = c => `<span class="cls-pill" style="--c:${c.col}">${c.k}</span>`;
+// 現階段最需要：依分類決定重點，再帶入這一區的實際數字與人名
+function needOf(o) {
+  const b = baseSum(o.dqs || []), c = clsOfBase(b), kids = kidsOf(o);
+  const h = window.histInfo?.(o.key), yr = h ? h.year : null;
+  const pct = b && b.sun ? (b.kids / b.sun * 100).toFixed(1) + '%' : '—';
+  const rows = DATA.attMeta ? [0, 1, 2].map(j => { const cc = attOf(o.filter, j), known = cc.穩定 + cc.建立中 + cc.需加強; return { j, m: MEET[j], c: cc, known, r: known ? cc.穩定 / known : 1 }; }) : [];
+  const bad = kids.filter(x => (x.k[4] || '').startsWith('未達標')).length;
+  let main; const more = [];
+  if (c === CLS[0]) main = `得少開拓：先得著第一位得少——發宣傳單張、邀家長填表${yr != null ? `（今年申請 ${yr} 份）` : ''}`;
+  else if (c === CLS[1]) main = `得少開拓：多發單張、邀家長填表，增加申請（得少佔主日基數 ${pct}${yr != null ? `，今年申請 ${yr} 份` : ''}）`;
+  else if (c === CLS[2]) { const s = rows[0]; main = s ? `主日成全：帶得少穩定來主日（主日穩定 ${s.c.穩定}／${s.known} 位）` : '主日成全：帶得少穩定來主日';
+    if (s && s.c.建立中) more.push(`先關心主日「建立中」：${namesOf(o, 0, '建立中', 5)}`);
+    else if (s && s.c.需加強) more.push(`主日「需加強」：${namesOf(o, 0, '需加強', 5)}`); }
+  else if (c === CLS[3]) { const w = rows.filter(r => r.known).sort((a, b) => a.r - b.r)[0];
+    main = w ? `深化牧養：加強${w.m}（穩定 ${w.c.穩定}／${w.known} 位）` : '深化牧養：維持各項聚會';
+    if (w && w.c.建立中) more.push(`先關心${w.m}「建立中」：${namesOf(o, w.j, '建立中', 5)}`);
+    else if (w && w.c.需加強) more.push(`${w.m}「需加強」：${namesOf(o, w.j, '需加強', 5)}`); }
+  else main = '沒有主日基數資料，請先確認基數';
+  if (kids.length && bad) more.push(`未達最低標準 ${bad}／${kids.length} 位，請優先關心`);
+  return { c, main, more, pct };
+}
+const needBox = o => { const n = needOf(o);
+  return `<div class="need" style="--c:${n.c.col}"><div class="need-h">${clsPill(n.c)}<small>得少佔主日基數 ${n.pct}・${n.c.d}</small></div>
+    <div class="need-m">⭐ 現階段最需要：${n.main}</div>${n.more.map(t => `<div class="need-s">・${t}</div>`).join('')}</div>`; };
+const needText = o => { const n = needOf(o); return [`🏷 分類：${n.c.k}（得少佔主日基數 ${n.pct}）`, `⭐ 現階段最需要：${n.main}`, ...n.more.map(t => `・${t}`)]; };
+const dqObj = n => dqShapes[n]._card();
+// 左側：各大區分類一覽（點大區直接飛過去）＋一鍵複製各大區最需要
+function renderDqCls() {
+  const el = document.getElementById('dqCls'); if (!el || !DATA.bases) return;
+  const groups = CLS.map(c => ({ c, dqs: DATA.dq.filter(d => clsOfBase(DATA.bases[d.n]) === c).map(d => d.n) })).filter(g => g.dqs.length);
+  el.innerHTML = `<div class="sec">各大區分類（得少 ÷ 主日基數）</div>` + groups.map(g => `<div class="dc-row">${clsPill(g.c)}<small>${g.c.d}</small><b>${g.dqs.length} 區</b></div>
+    <div class="dc-chips">${g.dqs.map(n => `<button data-dq="${n}">${n} 大區</button>`).join('')}</div>`).join('') +
+    `<button class="h-copy dc-copy" id="dcCopy">📋 複製各大區現階段最需要</button>`;
+  el.querySelectorAll('[data-dq]').forEach(b => b.onclick = () => { const shp = dqShapes[+b.dataset.dq]; closeOpenTip(); showCard(shp._card()); selectShape(shp); shp._fly(); });
+  document.getElementById('dcCopy').onclick = e => {
+    const L = [`【臺中各大區・現階段最需要】${today()}`, LINE];
+    groups.forEach(g => { L.push('', `${g.c.k}（${g.c.d}）`); g.dqs.forEach(n => { const o = dqObj(n), x = needOf(o); L.push(`・${n} 大區（${o.count} 位，${x.pct}）：${x.main}`); }); });
+    L.push('', LINE, '（分類依「得少人數 ÷ 主日基數」）', `🗺 地圖：${SITE}`);
+    copyText(L.join('\n'), e.currentTarget); };
+}
+setTimeout(renderDqCls, 0);
 // 負責弟兄／全時間：大區顯示負責弟兄＋全時間；照顧區、全台中列出所轄全時間（不重複）
 const dqOf = n => DATA.dq.find(x => x.n === n);
 const ftOf = dqs => [...new Set(dqs.map(n => dqOf(n)?.ft).filter(Boolean))];
@@ -680,7 +746,7 @@ function showCard(o) {
   areaCard.innerHTML = `<button class="ac-x" aria-label="關閉">×</button>
     ${o.up && careShapes[o.up] ? `<button class="ac-k ac-up" data-up>${o.kicker}・看整個照顧區 ›</button>` : `<div class="ac-k">${o.kicker}</div>`}<div class="ac-h">${o.title}</div>
     ${whoLine(o) ? `<div class="ac-p">${whoLine(o, true)}</div>` : ''}
-    <div class="ac-n"><b>${o.count}</b> 位得少・申請填表累計 <b>${o.apps}</b> 份</div>${chips}${o.dqs ? ratioBox(o.dqs) : ''}
+    <div class="ac-n"><b>${o.count}</b> 位得少・申請填表累計 <b>${o.apps}</b> 份</div>${chips}${o.dqs && DATA.bases ? needBox(o) : ''}${o.dqs ? ratioBox(o.dqs) : ''}
     <div class="ac-opts">
       ${DATA.hist ? `<div class="ac-box get"><button class="ac-opt get" data-hist="${o.key}"><b>得少開拓分析 ›</b><span>申請 → 進入專案</span></button>
         <button class="ac-copy" data-copy="spread">📋 複製開拓重點</button></div>` : ''}
@@ -742,7 +808,7 @@ const LINE = '━━━━━━━━━━';
 // 得少開拓：最優先的一件事放最上面，接著數字、其他建議
 function spreadText(o) {
   const h = window.histInfo?.(o.key); if (!h) return '';
-  const L = [`【${o.title}・得少開拓分析】${today()}`, ...(whoLine(o) ? [`👤 ${whoLine(o)}`] : []), LINE];
+  const L = [`【${o.title}・得少開拓分析】${today()}`, ...(whoLine(o) ? [`👤 ${whoLine(o)}`] : []), ...(o.dqs && DATA.bases ? needText(o) : []), LINE];
   if (h.low) L.push(`⭐ 最優先：今年申請偏少！`, `今年只有 ${h.year} 份（全台中每個大區平均 ${h.yearAvg.toFixed(1)} 份）`, `→ 請更積極發宣傳單張、邀家長填表`);
   else if (h.waiting) L.push(`⭐ 最優先：關心審核中的 ${h.waiting} 份申請`, `→ 主動聯繫這些家庭，陪伴到年底梯次進入專案（照比例約可進 ${h.exp < 1 ? '0–1' : Math.round(h.exp)} 位）`);
   else L.push(`⭐ 最優先：保持發單張的節奏`, `→ 每 ${h.per.toFixed(1)} 份申請約可得著 1 位得少`);
@@ -764,7 +830,7 @@ function namesOf(o, j, cat, max = 8) {
 function perfectText(o) {
   if (!DATA.attMeta) return '';
   const w = attWeeks(), { rows, worst } = nowRows(o);
-  const L = [`【${o.title}・得少牧養分析】${today()}`, ...(whoLine(o) ? [`👤 ${whoLine(o)}`] : []), LINE];
+  const L = [`【${o.title}・得少牧養分析】${today()}`, ...(whoLine(o) ? [`👤 ${whoLine(o)}`] : []), ...(o.dqs && DATA.bases ? needText(o) : []), LINE];
   if (!o.count) { L.push('⭐ 目前還沒有得少', '→ 先加強得少開拓：發宣傳單張、邀家長填表'); return [...L, LINE, '', `🗺 地圖：${SITE}`].join('\n'); }
   if (!worst) L.push('⭐ 最優先：確認點名', '→ 這一區的得少還沒有點名紀錄');
   else if (worst.st === '安全') L.push('⭐ 三項聚會都穩定 👍', '→ 繼續保持，鼓勵得少帶同伴來');

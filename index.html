@@ -678,7 +678,6 @@ function ratioCompare(dqs, care, tot) {
     row(care ? '全台中' : '本區合計', tot, 'tot') +
     rows.sort((a, b) => (r1(b.b) || 0) - (r1(a.b) || 0)).map(r => row(r.care ? r.n : r.n + ' 大區', r.b)).join('') + `</tbody></table>`;
 }
-{ const el = document.getElementById('cityRatio'); if (el && DATA.bases) el.innerHTML = `<div class="rb-t">全台中（不含金門）</div>` + ratioBox(Object.keys(DATA.bases).map(Number), true); }
 // ── 大區分類（與全台得少分布圖相同）：得少人數 ÷ 主日基數 ──
 const CLS = [
   { k: '需鼓勵突破', d: '0%（沒有得少）', col: '#8a5cc2' },
@@ -730,6 +729,8 @@ function renderDqCls() {
     copyText(L.join('\n'), e.currentTarget); };
 }
 setTimeout(renderDqCls, 0);
+// 全台中比例表要用到上面的分類，所以放在分類定義之後
+{ const el = document.getElementById('cityRatio'); if (el && DATA.bases) el.innerHTML = `<div class="rb-t">全台中（不含金門）</div>` + ratioBox(Object.keys(DATA.bases).map(Number), true); }
 // 負責弟兄／全時間：大區顯示負責弟兄＋全時間；照顧區、全台中列出所轄全時間（不重複）
 const dqOf = n => DATA.dq.find(x => x.n === n);
 const ftOf = dqs => [...new Set(dqs.map(n => dqOf(n)?.ft).filter(Boolean))];
